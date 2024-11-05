@@ -25,6 +25,7 @@ while True:
     if inputMenu == 0:
         break
     elif inputMenu == 1:
+        os.system('cls')
         # 输入url
         url = input('将测验界面的Url粘贴至此：')
         a = re.findall('\d+', url)
@@ -67,6 +68,8 @@ while True:
                     answer = 3
                 elif correctAnswer[ID][0] == 'D':
                     answer = 4
+                elif correctAnswer[ID][0] == 'E':
+                    answer = 5
                 ac.click(f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{ID+1}]/div[2]/ul/li[{answer}]/div/label/span[1]/input')
             elif len(correctAnswer[ID]) != 1:
                 for length in range(len(correctAnswer[ID])):
@@ -74,6 +77,7 @@ while True:
                     elif correctAnswer[ID][length-1] == 'B':   answer = 2
                     elif correctAnswer[ID][length-1] == 'C':   answer = 3
                     elif correctAnswer[ID][length-1] == 'D':   answer = 4
+                    elif correctAnswer[ID][length-1] == 'E':   answer = 5
                     ac.click(f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{ID+1}]/div[2]/ul/li[{answer}]/div/label/span[1]/input')
             elif len(correctAnswer[ID]) == 1 and (correctAnswer[ID][0] == 'true' or correctAnswer[ID][0] == 'false'):
                 if correctAnswer[ID][0] == 'true':
