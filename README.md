@@ -25,10 +25,7 @@ https://github.com/BlackCyan07/Ulearning/releases
 - 题目较多时可能会有出现漏填题目的问题，目前问题产生的原因暂时未知
 #### 有任何其他问题，请提交至issues，谢谢
 #### 这是我的爱发电地址，如果您喜欢我的脚本可以支持我一下~
-https://afdian.com/a/blackcyan
-
-## 特别鸣谢： 
-> 爱发电：**二哈** **玥笙舟**  
+https://afdian.com/a/blackcyan  
+## 特别鸣谢：  
+> 二哈 玥笙舟  
 > ![img.png](img.png)
-
-感谢投喂！
