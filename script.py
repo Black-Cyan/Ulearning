@@ -8,7 +8,7 @@ from DrissionPage.common import Actions
 
 _author = '墨青BlackCyan'
 _name = 'Ulearning自动答题脚本'
-_version = '1.1.0'
+_version = '1.1.1'
 menu = [
     '1.自动答题',
     '2.反馈',
