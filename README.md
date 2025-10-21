@@ -9,12 +9,14 @@
 ### 下载地址
 [Releases](https://github.com/Black-Cyan/Ulearning/releases)  
 ### 使用方法  
-1. 下载谷歌浏览器，设置一个目标为
+1. 运行脚本
+   ```bash
+   # 首次运行需要配置浏览器可执行文件位置
+   .\Ulearning.exe -b 'C:\...\你的浏览器可执行文件.exe'
+   # 配置过后，以后可以直接双击运行，或者在命令行/终端中运行
+   .\Ulearning.exe
    ```
-   ".../chrome.exe" --remote-debugging-port=9333
-   ``` 
-   的快捷方式（目的是使此快捷方式打开的浏览器端口为9333，注意后缀与路径中间的空格不要漏掉）
-2. 登录优学院，打开做题页面  
+2. 在弹出的浏览器中登录优学院，打开做题页面  
 3. 按 F12 打开开发人员选项，选择Network（网络），然后刷新网页，选中questions?homeworkId=*** 的xhr请求，定位到Headers > Request Headers > Authorization
 4. 运行此脚本
 5. 根据脚本提示，粘贴Url与Authorization
