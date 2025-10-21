@@ -7,7 +7,7 @@
 ### 介绍
 > 我在网上查找优学院的脚本时，发现可用脚本少之又少，有的甚至要收费，于是我打算借助12306爬虫的原理，用python写一个自动答题脚本。  
 ### 下载地址
-https://github.com/BlackCyan07/Ulearning/releases  
+[Releases](https://github.com/Black-Cyan/Ulearning/releases)  
 ### 使用方法  
 1. 下载谷歌浏览器，设置一个目标为
    ```
