@@ -1,3 +1,4 @@
 dist
 .idea
 .venv
+/favicon.ico
