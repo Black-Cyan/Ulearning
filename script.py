@@ -1,11 +1,12 @@
+import argparse
 import msvcrt
-import requests
-import re
 import os
+import re
 
-from DrissionPage import ChromiumPage
+import requests
+from DrissionPage import ChromiumPage, ChromiumOptions
 from DrissionPage.common import Actions
-from DrissionPage.errors import *
+from DrissionPage.errors import ElementNotFoundError
 
 _author = '墨青BlackCyan'
 _name = 'Ulearning自动答题脚本'
@@ -16,126 +17,176 @@ menu = [
     '0.退出脚本'
 ]
 
-# 接管端口为9333的Chrom浏览器
-dp = ChromiumPage(9333)
-ac = Actions(dp)
 
-while True:
-    os.system('cls')
-    print((_name + ' v' + _version).center(40, '-'))
-    print(("作者：" + _author).center(40, '-'))
-    print(menu[0])
-    print(menu[1])
-    print(menu[2])
+def set_browser_path(browser_path):
+    # 检查文件是否存在
+    if not os.path.exists(browser_path):
+        raise FileNotFoundError(f"浏览器文件不存在: {browser_path}")
+
+    # 检查是否为可执行文件
+    if not os.path.isfile(browser_path):
+        raise FileNotFoundError(f"路径不是文件: {browser_path}")
+
+    # 保存浏览器配置
+    ChromiumOptions().set_browser_path(browser_path).save()
+    print(f"浏览器路径设置成功: {browser_path}")
+
+
+def main():
+    # 初始化浏览器实例
     try:
-        inputMenu = int(msvcrt.getch())
-        if inputMenu == 0:
-            break
-        elif inputMenu == 1:
-            os.system('cls')
-            # 输入url
-            url = input('将测验界面的Url粘贴至此：')
-            try:
-                a = re.findall('\d+', url)
-            except TypeError:
-                print('Url错误, 可能是你粘贴了错误的Url\n按任意键继续...')
-                msvcrt.getch()
-                continue
-            try:
-                xhr_url = f'https://homeworkapi.ulearning.cn/quiz/homework/stu/questions?homeworkId={a[1]}&ocId={a[0]}&showAnswer=true'
-            except (IndexError, TypeError):
-                print('Url错误, 可能是你粘贴了错误的Url\n按任意键继续...')
-                msvcrt.getch()
-                continue
-            # 修改url获取请求
-            get_url = xhr_url
-            # 用户自行输入authorization
-            authorization = input('Authorization:')
+        dp = ChromiumPage(9333)
+        ac = Actions(dp)
+    except FileNotFoundError as e:
+        print(f"错误: {str(e)}")
+        print("请正确配置浏览器路径，方法如下：")
+        print("1. 运行脚本时添加参数: -b 浏览器可执行文件完整路径")
+        print("2. 示例: .\\Ulearning.exe -b \"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\"")
+        print("3. 可在浏览器地址栏输入 'edge://version' 或 'chrome://version' 查看安装路径")
+        exit(1)
 
-            xhr_headers = {
-                'authorization': authorization,
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
-            }
+    while True:
+        os.system('cls')
+        print((_name + ' v' + _version).center(40, '-'))
+        print(("作者：" + _author).center(40, '-'))
+        for item in menu:
+            print(item)
 
-            # 爬取xhr
-            xhr_response = requests.get(url=xhr_url, headers=xhr_headers)
-            # 储存JSON
-            xhr_json = xhr_response.json()
-            try:
-                xhr_json['result']
-            except KeyError:
-                print('读取json键值对错误\n可能是你粘贴了错误的Url或Authorization?\n按任意键继续...')
-                msvcrt.getch()
-                continue
-            # 爬取题目答案
-            correctAnswer = {}
-            ID = 0
-            for result in xhr_json['result']:
-                correctAnswer[ID] = xhr_json['result'][ID]['correctAnswer']
-                ID += 1
+        try:
+            input_menu = int(msvcrt.getch())
+            if input_menu == 0:
+                break
+            elif input_menu == 1:
+                os.system('cls')
+                # 输入测验URL
+                url = input('将测验界面的Url粘贴至此：')
 
-            # 自动答题
-            answer = 0
-            for ID in correctAnswer:
-                if len(correctAnswer[ID]) == 1 and correctAnswer[ID][0] in ('A', 'B', 'C', 'D', 'E'):
-                    if correctAnswer[ID][0] == 'A':
-                        answer = 1
-                    elif correctAnswer[ID][0] == 'B':
-                        answer = 2
-                    elif correctAnswer[ID][0] == 'C':
-                        answer = 3
-                    elif correctAnswer[ID][0] == 'D':
-                        answer = 4
-                    elif correctAnswer[ID][0] == 'E':
-                        answer = 5
-                    try:
-                        ac.click(f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{ID + 1}]/div[2]/ul/li[{answer}]/div/label/span[1]/input')
-                    except ElementNotFoundError:
-                        print(f'line: 90 未找到元素 xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{ID + 1}]/div[2]/ul/li[{answer}]/div/label/span[1]/input, 可能是源代码出现问题\n按任意键继续...')
-                        msvcrt.getch()
+                # 解析URL中的数字
+                try:
+                    a = re.findall('\d+', url)
+                except TypeError:
+                    print('Url错误, 可能是你粘贴了错误的Url\n按任意键继续...')
+                    msvcrt.getch()
+                    continue
+
+                # 构建API请求URL
+                try:
+                    xhr_url = f'https://homeworkapi.ulearning.cn/quiz/homework/stu/questions?homeworkId={a[1]}&ocId={a[0]}&showAnswer=true'
+                except (IndexError, TypeError):
+                    print('Url错误, 可能是你粘贴了错误的Url\n按任意键继续...')
+                    msvcrt.getch()
+                    continue
+
+                # 获取Authorization
+                authorization = input('Authorization:')
+                xhr_headers = {
+                    'authorization': authorization,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
+                }
+
+                # 请求API获取答案
+                try:
+                    xhr_response = requests.get(url=xhr_url, headers=xhr_headers)
+                    xhr_json = xhr_response.json()
+                    # 验证JSON结构
+                    if 'result' not in xhr_json:
+                        raise KeyError('result')
+                except KeyError:
+                    print('读取json键值对错误\n可能是你粘贴了错误的Url或Authorization?\n按任意键继续...')
+                    msvcrt.getch()
+                    continue
+                except Exception as e:
+                    print(f'请求失败: {str(e)}\n按任意键继续...')
+                    msvcrt.getch()
+                    continue
+
+                # 解析答案
+                correct_answer = {}
+                for idx, result in enumerate(xhr_json['result']):
+                    correct_answer[idx] = result.get('correctAnswer', [])
+
+                # 自动答题逻辑
+                for idx in correct_answer:
+                    answers = correct_answer[idx]
+                    if not answers:
                         continue
-                elif len(correctAnswer[ID]) != 1:
-                    for length in range(len(correctAnswer[ID])):
-                        if correctAnswer[ID][length-1] == 'A':    answer = 1
-                        elif correctAnswer[ID][length-1] == 'B':   answer = 2
-                        elif correctAnswer[ID][length-1] == 'C':   answer = 3
-                        elif correctAnswer[ID][length-1] == 'D':   answer = 4
-                        elif correctAnswer[ID][length-1] == 'E':   answer = 5
+
+                    # 处理单选题
+                    if len(answers) == 1 and answers[0] in ('A', 'B', 'C', 'D', 'E'):
+                        answer_map = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5}
+                        answer_idx = answer_map.get(answers[0], 0)
+                        if answer_idx:
+                            try:
+                                xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/ul/li[{answer_idx}]/div/label/span[1]/input'
+                                ac.click(xpath)
+                            except ElementNotFoundError:
+                                print(f'未找到单选题元素 (第{idx + 1}题)，可能是页面结构变化\n按任意键继续...')
+                                msvcrt.getch()
+                                continue
+
+                    # 处理多选题
+                    elif len(answers) > 1 and all(a in ('A', 'B', 'C', 'D', 'E') for a in answers):
+                        answer_map = {'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5}
+                        for ans in answers:
+                            answer_idx = answer_map.get(ans, 0)
+                            if answer_idx:
+                                try:
+                                    xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/ul/li[{answer_idx}]/div/label/span[1]/input'
+                                    ac.click(xpath)
+                                except ElementNotFoundError:
+                                    print(f'未找到多选题元素 (第{idx + 1}题)，可能是页面结构变化\n按任意键继续...')
+                                    msvcrt.getch()
+                                    continue
+
+                    # 处理判断题
+                    elif len(answers) == 1 and answers[0] in ('true', 'false'):
+                        answer_idx = 1 if answers[0] == 'true' else 2
                         try:
-                            ac.click(f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{ID + 1}]/div[2]/ul/li[{answer}]/div/label/span[1]/input')
+                            xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/div[2]/label[{answer_idx}]/span[1]/input'
+                            ac.click(xpath)
                         except ElementNotFoundError:
-                            print(f'line: 105 未找到元素 xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{ID + 1}]/div[2]/ul/li[{answer}]/div/label/span[1]/input, 可能是源代码出现问题\n按任意键继续...')
+                            print(f'未找到判断题元素 (第{idx + 1}题)，可能是页面结构变化\n按任意键继续...')
                             msvcrt.getch()
                             continue
-                elif len(correctAnswer[ID]) == 1 and (correctAnswer[ID][0] == 'true' or correctAnswer[ID][0] == 'false'):
-                    if correctAnswer[ID][0] == 'true':
-                        answer = 1
-                    elif correctAnswer[ID][0] == 'false':
-                        answer = 2
-                    try:
-                        ac.click(f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{ID + 1}]/div[2]/div[2]/label[{answer}]/span[1]/input')
-                    except ElementNotFoundError:
-                        print(f'line: 114 未找到元素 xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{ID + 1}]/div[2]/ul/li[{answer}]/div/label/span[1]/input, 可能是源代码出现问题\n按任意键继续...')
-                        msvcrt.getch()
-                        continue
-                elif len(correctAnswer[ID]) == 1:
-                    try:
-                        ac.click(f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{ID + 1}]/div[2]/div[2]/div[1]/div[1]/textarea')
-                        ac.type(correctAnswer[ID][0])
-                    except ElementNotFoundError:
-                        print(f'line: 121 未找到元素 xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{ID + 1}]/div[2]/div[2]/div[1]/div[1]/textarea, 可能是源代码出现问题\n按任意键继续...')
-                        msvcrt.getch()
-                        continue
-            print('自动答题完成！按任意键继续')
-            msvcrt.getch()
-            continue
-        elif inputMenu == 2:
-            ChromiumPage(9333).new_tab('https://github.com/BlackCyan07/Ulearning/issues')
-            continue
-        else:
-            continue
-    except KeyboardInterrupt:
-        print('用户退出')
-        exit()
-    except ValueError:
-        pass
+
+                    # 处理填空题
+                    elif len(answers) == 1:
+                        try:
+                            xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/div[2]/div[1]/div[1]/textarea'
+                            ac.click(xpath)
+                            ac.type(answers[0])
+                        except ElementNotFoundError:
+                            print(f'未找到填空题元素 (第{idx + 1}题)，可能是页面结构变化\n按任意键继续...')
+                            msvcrt.getch()
+                            continue
+
+                print('自动答题完成！按任意键继续')
+                msvcrt.getch()
+                continue
+
+            elif input_menu == 2:
+                # 打开反馈页面
+                dp.new_tab('https://github.com/BlackCyan07/Ulearning/issues')
+                continue
+
+            else:
+                continue
+
+        except KeyboardInterrupt:
+            print('用户退出')
+            exit()
+        except ValueError:
+            pass
+
+if __name__ == '__main__':
+    # 解析命令行参数
+    parser = argparse.ArgumentParser(description='Ulearning自动答题脚本')
+    parser.add_argument('-b', '--browser', help='浏览器可执行文件路径')
+    args = parser.parse_args()
+
+    # 如果提供了浏览器路径参数，则设置浏览器
+    if args.browser:
+        set_browser_path(args.browser)
+
+    # 启动主程序
+    main()
