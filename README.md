@@ -4,20 +4,25 @@
 #### 经测试，该脚本只支持前端判断答案正误的题目  
 ### 免责声明
 > 该脚本仅用于交流学习，禁止用于非法用途，请在下载的24h后删除该脚本！
-### 介绍
+## 许可证变更说明
+- 项目在 v1.0.0 至 v1.2.0 版本中采用 MIT 许可证（详见 [LICENSE-MIT](LICENSE-MIT)）。
+- 自 v1.2.1 版本起，本项目更换为 Apache License 2.0（详见 [LICENSE](LICENSE)）。
+- 所有历史版本仍受原许可证约束，新版本用户需遵守 Apache 2.0 条款。
+## 介绍
 > 我在网上查找优学院的脚本时，发现可用脚本少之又少，有的甚至要收费，于是我打算借助12306爬虫的原理，用python写一个自动答题脚本。  
-### 下载地址
+## 下载地址
 [Releases](https://github.com/Black-Cyan/Ulearning/releases)  
-### 使用方法  
-1. 运行脚本
+## 使用方法  
+1. 将脚本放进一个单独的文件夹，然后运行脚本
    ```bash
    # 首次运行需要配置浏览器可执行文件位置
    .\Ulearning.exe -b 'C:\...\你的浏览器可执行文件.exe'
    # 配置过后，以后可以直接双击运行，或者在命令行/终端中运行
    .\Ulearning.exe
    ```
+   脚本会自动生成配置文件
 2. 在弹出的浏览器中登录优学院，打开做题页面  
-3. 按 F12 打开开发人员选项，选择Network（网络），然后刷新网页，选中questions?homeworkId=*** 的xhr请求，定位到Headers > Request Headers > Authorization
+3. 按 F12 打开开发人员选项，选择 Network（网络），然后刷新网页，选中 questions?homeworkId=*** 的xhr请求，定位到 Headers（标头） > Request Headers（请求标头） > Authorization
 4. 运行此脚本
 5. 根据脚本提示，粘贴Url与Authorization
 6. 等待题目自行完成  

@@ -1,7 +1,24 @@
+# Copyright 2025 BlackCyan
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import argparse
+import json
 import msvcrt
 import os
 import re
+import sys
+import time
 
 import requests
 from DrissionPage import ChromiumPage, ChromiumOptions
@@ -10,47 +27,88 @@ from DrissionPage.errors import ElementNotFoundError
 
 _author = '墨青BlackCyan'
 _name = 'Ulearning自动答题脚本'
-_version = '1.2.0'
+_version = '1.2.1'
 menu = [
     '1.自动答题',
     '2.反馈',
     '0.退出脚本'
 ]
 
+current_file = os.path.abspath(sys.executable) # 如果没有打包直接运行，则参数应改为 __file__
+current_dir = os.path.dirname(current_file)
+config_dir = os.path.join(current_dir, 'config')
+config_file = os.path.join(config_dir, 'Ulearning.json')
 
-def set_browser_path(browser_path):
-    # 检查文件是否存在
-    if not os.path.exists(browser_path):
-        raise FileNotFoundError(f"浏览器文件不存在: {browser_path}")
 
-    # 检查是否为可执行文件
-    if not os.path.isfile(browser_path):
-        raise FileNotFoundError(f"路径不是文件: {browser_path}")
+def check_config():
+    """检查配置文件"""
+    # 检查配置文件夹是否存在
+    if not os.path.exists(config_file):
+        os.makedirs(config_dir, exist_ok=True)
+
+        # 配置文件模板
+        config_template = {
+            'browser_path': 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+        }
+        with open(config_file, 'w', encoding='utf-8') as f:
+            json.dump(config_template, f, ensure_ascii=False, indent=2)
+
+        print(f'配置文件不存在，已为您创建配置文件: {config_file}')
+
+def check_browser():
+    """检查浏览器"""
+    co = ChromiumOptions()
+    dp_debug = None
+
+    with open(config_file, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+    co.set_browser_path(config['browser_path']).save()
+
+    browser_path = co.browser_path
+
+    print('正在检查浏览器文件配置...')
+    print(f'读取到浏览器文件配置: {browser_path}')
+
+    if not os.path.exists(browser_path) or not os.path.isfile(browser_path):
+        raise FileNotFoundError(f'配置中的浏览器可执行文件位置为 {browser_path}, 但该文件不存在。')
+
+    try:
+        dp_debug = ChromiumPage(1234)
+    except FileNotFoundError as why:
+        raise FileNotFoundError(f'尝试启动浏览器失败: {why}')
+    finally:
+        if dp_debug:
+            dp_debug.close()
+
+
+def set_browser(browser_path):
+    """设置浏览器"""
+    if not os.path.exists(browser_path) or not os.path.isfile(browser_path):
+        raise FileNotFoundError(f"文件不存在: {browser_path}")
 
     # 保存浏览器配置
-    ChromiumOptions().set_browser_path(browser_path).save()
-    print(f"浏览器路径设置成功: {browser_path}")
+    with open(config_file, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+        config['browser_path'] = browser_path
+
+    with open(config_file, 'w', encoding='utf-8') as f:
+        json.dump(config, f, ensure_ascii=False, indent=2)
+
+    print(f"浏览器路径设置成功")
+    time.sleep(2)
 
 
 def main():
     # 初始化浏览器实例
-    try:
-        dp = ChromiumPage(9333)
-        ac = Actions(dp)
-    except FileNotFoundError as e:
-        print(f"错误: {str(e)}")
-        print("请正确配置浏览器路径，方法如下：")
-        print("1. 运行脚本时添加参数: -b 浏览器可执行文件完整路径")
-        print("2. 示例: .\\Ulearning.exe -b \"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\"")
-        print("3. 可在浏览器地址栏输入 'edge://version' 或 'chrome://version' 查看安装路径")
-        exit(1)
+    dp = ChromiumPage(9333)
+    ac = Actions(dp)
 
     while True:
         os.system('cls')
         print((_name + ' v' + _version).center(40, '-'))
-        print(("作者：" + _author).center(40, '-'))
         for item in menu:
             print(item)
+        print(("作者：" + _author).center(40, '-'))
 
         try:
             input_menu = int(msvcrt.getch())
@@ -59,13 +117,13 @@ def main():
             elif input_menu == 1:
                 os.system('cls')
                 # 输入测验URL
-                url = input('将测验界面的Url粘贴至此：')
+                url = input('将测验界面的 Url 粘贴至此：')
 
                 # 解析URL中的数字
                 try:
                     a = re.findall('\d+', url)
                 except TypeError:
-                    print('Url错误, 可能是你粘贴了错误的Url\n按任意键继续...')
+                    print('Url 错误, 可能是你粘贴了错误的 Url\n按任意键继续...')
                     msvcrt.getch()
                     continue
 
@@ -92,11 +150,11 @@ def main():
                     if 'result' not in xhr_json:
                         raise KeyError('result')
                 except KeyError:
-                    print('读取json键值对错误\n可能是你粘贴了错误的Url或Authorization?\n按任意键继续...')
+                    print('读取 json 键值对错误\n可能是你粘贴了错误的 Url 或 Authorization ?\n按任意键继续...')
                     msvcrt.getch()
                     continue
-                except Exception as e:
-                    print(f'请求失败: {str(e)}\n按任意键继续...')
+                except Exception as why:
+                    print(f'请求失败: {str(why)}\n按任意键继续...')
                     msvcrt.getch()
                     continue
 
@@ -120,8 +178,7 @@ def main():
                                 xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/ul/li[{answer_idx}]/div/label/span[1]/input'
                                 ac.click(xpath)
                             except ElementNotFoundError:
-                                print(f'未找到单选题元素 (第{idx + 1}题)，可能是页面结构变化\n按任意键继续...')
-                                msvcrt.getch()
+                                print(f'未找到单选题元素 (第{idx + 1}题)，可能是页面结构变化')
                                 continue
 
                     # 处理多选题
@@ -134,8 +191,7 @@ def main():
                                     xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/ul/li[{answer_idx}]/div/label/span[1]/input'
                                     ac.click(xpath)
                                 except ElementNotFoundError:
-                                    print(f'未找到多选题元素 (第{idx + 1}题)，可能是页面结构变化\n按任意键继续...')
-                                    msvcrt.getch()
+                                    print(f'未找到多选题元素 (第{idx + 1}题)，可能是页面结构变化')
                                     continue
 
                     # 处理判断题
@@ -145,8 +201,7 @@ def main():
                             xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/div[2]/label[{answer_idx}]/span[1]/input'
                             ac.click(xpath)
                         except ElementNotFoundError:
-                            print(f'未找到判断题元素 (第{idx + 1}题)，可能是页面结构变化\n按任意键继续...')
-                            msvcrt.getch()
+                            print(f'未找到判断题元素 (第{idx + 1}题)，可能是页面结构变化')
                             continue
 
                     # 处理填空题
@@ -156,8 +211,7 @@ def main():
                             ac.click(xpath)
                             ac.type(answers[0])
                         except ElementNotFoundError:
-                            print(f'未找到填空题元素 (第{idx + 1}题)，可能是页面结构变化\n按任意键继续...')
-                            msvcrt.getch()
+                            print(f'未找到填空题元素 (第{idx + 1}题)，可能是页面结构变化')
                             continue
 
                 print('自动答题完成！按任意键继续')
@@ -166,7 +220,7 @@ def main():
 
             elif input_menu == 2:
                 # 打开反馈页面
-                dp.new_tab('https://github.com/BlackCyan07/Ulearning/issues')
+                dp.new_tab('https://github.com/Black-Cyan/Ulearning/issues')
                 continue
 
             else:
@@ -178,6 +232,7 @@ def main():
         except ValueError:
             pass
 
+
 if __name__ == '__main__':
     # 解析命令行参数
     parser = argparse.ArgumentParser(description='Ulearning自动答题脚本')
@@ -186,7 +241,18 @@ if __name__ == '__main__':
 
     # 如果提供了浏览器路径参数，则设置浏览器
     if args.browser:
-        set_browser_path(args.browser)
+        set_browser(args.browser)
 
     # 启动主程序
+    check_config()
+    try:
+        check_browser()
+    except FileNotFoundError as e:
+        print(e)
+        print("请正确配置浏览器路径，方法如下：")
+        print(f"1. 运行脚本时添加参数: -b 浏览器可执行文件完整路径 或者编辑配置文件 {config_file}")
+        print("2. 示例: .\\Ulearning.exe -b \"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\"")
+        print("3. 可在浏览器地址栏输入 'edge://version' 或 'chrome://version' 查看安装路径")
+        exit()
+
     main()

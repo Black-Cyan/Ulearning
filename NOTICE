@@ -1,0 +1,21 @@
+Apache License
+Version 2.0, January 2004
+http://www.apache.org/licenses/
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+[For the full text of Apache License 2.0, please check it on http://www.apache.org/licenses/LICENSE-2.0]
+
+NOTICE file for Ulearning自动答题脚本
+
+This product includes software developed by BlackCyan (https://github.com/Black-Cyan/Ulearning).
+
+Ulearning自动答题脚本
+Author: BlackCyan
+Repository: https://github.com/Black-Cyan/Ulearning
+
+This software uses the following third-party libraries:
+- DrissionPage: https://github.com/g1879/DrissionPage
+- requests: https://requests.readthedocs.io/
+
+Each third-party library is subject to its own license terms. For details, please refer to their respective license documents.
