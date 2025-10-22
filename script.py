@@ -27,14 +27,14 @@ from DrissionPage.errors import ElementNotFoundError
 
 _author = '墨青BlackCyan'
 _name = 'Ulearning自动答题脚本'
-_version = '1.2.1'
+_version = '1.3.0'
 menu = [
     '1.自动答题',
     '2.反馈',
     '0.退出脚本'
 ]
 
-current_file = os.path.abspath(sys.executable) # 如果没有打包直接运行，则参数应改为 __file__
+current_file = os.path.abspath(sys.executable)  # 如果没有打包直接运行，则参数应改为 __file__
 current_dir = os.path.dirname(current_file)
 config_dir = os.path.join(current_dir, 'config')
 config_file = os.path.join(config_dir, 'Ulearning.json')
@@ -54,6 +54,7 @@ def check_config():
             json.dump(config_template, f, ensure_ascii=False, indent=2)
 
         print(f'配置文件不存在，已为您创建配置文件: {config_file}')
+
 
 def check_browser():
     """检查浏览器"""
@@ -111,42 +112,54 @@ def main():
         print(("作者：" + _author).center(40, '-'))
 
         try:
-            input_menu = int(msvcrt.getch())
-            if input_menu == 0:
+            input_menu = ord(msvcrt.getch())
+            if input_menu == 48:
                 break
-            elif input_menu == 1:
+            elif input_menu == 49:
                 os.system('cls')
-                # 输入测验URL
-                url = input('将测验界面的 Url 粘贴至此：')
+                print('请确保浏览器打开的标签页为做题页面，然后按下 Enter 继续...')
+                while True:
+                    key = ord(msvcrt.getch())
+                    if key == 13:
+                        break
 
-                # 解析URL中的数字
+                # 获取测验 URL
+                url = dp.url
+
+                # 解析 URL 中的数字
                 try:
                     a = re.findall('\d+', url)
                 except TypeError:
-                    print('Url 错误, 可能是你粘贴了错误的 Url\n按任意键继续...')
+                    print('Url 错误, 可能是你没有打开做题页面\n按任意键继续...')
                     msvcrt.getch()
                     continue
 
-                # 构建API请求URL
+                # 构建 API 请求URL
                 try:
                     xhr_url = f'https://homeworkapi.ulearning.cn/quiz/homework/stu/questions?homeworkId={a[1]}&ocId={a[0]}&showAnswer=true'
                 except (IndexError, TypeError):
-                    print('Url错误, 可能是你粘贴了错误的Url\n按任意键继续...')
+                    print('Url 错误, 可能是你没有打开做题页面\n按任意键继续...')
                     msvcrt.getch()
                     continue
 
-                # 获取Authorization
-                authorization = input('Authorization:')
+                # 获取 Authorization
+                cookies = dp.cookies(all_domains=False)
+                authorization = None
+                for cookie in cookies:
+                    if cookie.get('name') == 'token':
+                        authorization = cookie.get('value')
+                        break
+
                 xhr_headers = {
                     'authorization': authorization,
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
                 }
 
-                # 请求API获取答案
+                # 请求 API 获取答案
                 try:
                     xhr_response = requests.get(url=xhr_url, headers=xhr_headers)
                     xhr_json = xhr_response.json()
-                    # 验证JSON结构
+                    # 验证 JSON 结构
                     if 'result' not in xhr_json:
                         raise KeyError('result')
                 except KeyError:
@@ -218,7 +231,7 @@ def main():
                 msvcrt.getch()
                 continue
 
-            elif input_menu == 2:
+            elif input_menu == 50:
                 # 打开反馈页面
                 dp.new_tab('https://github.com/Black-Cyan/Ulearning/issues')
                 continue
@@ -229,8 +242,6 @@ def main():
         except KeyboardInterrupt:
             print('用户退出')
             exit()
-        except ValueError:
-            pass
 
 
 if __name__ == '__main__':
