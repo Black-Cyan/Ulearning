@@ -34,6 +34,9 @@
 #### 有任何其他问题，请提交至issues，谢谢
 #### 这是我的爱发电地址，如果您喜欢我的脚本可以支持我一下~
 https://afdian.com/a/blackcyan  
+#### 这是我的赞赏码~
+<img src="https://github.com/Black-Cyan/Black-Cyan/blob/main/%E8%B5%9E%E8%B5%8F%E7%A0%81.png" width="200" height="200" alt="赞赏码">
+
 ## 特别鸣谢：  
 > 二哈 玥笙舟  
 > ![img.png](img.png)
