@@ -27,7 +27,7 @@ from DrissionPage.errors import ElementNotFoundError
 
 _author = '墨青BlackCyan'
 _name = 'Ulearning自动答题脚本'
-_version = '1.3.0'
+_version = '1.3.1'
 menu = [
     '1.自动答题',
     '2.反馈',
@@ -189,7 +189,8 @@ def main():
                         if answer_idx:
                             try:
                                 xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/ul/li[{answer_idx}]/div/label/span[1]/input'
-                                ac.click(xpath)
+                                element = dp.ele(xpath)
+                                dp.run_js('arguments[0].click()', element)
                             except ElementNotFoundError:
                                 print(f'未找到单选题元素 (第{idx + 1}题)，可能是页面结构变化')
                                 continue
@@ -202,7 +203,8 @@ def main():
                             if answer_idx:
                                 try:
                                     xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/ul/li[{answer_idx}]/div/label/span[1]/input'
-                                    ac.click(xpath)
+                                    element = dp.ele(xpath)
+                                    dp.run_js('arguments[0].click()', element)
                                 except ElementNotFoundError:
                                     print(f'未找到多选题元素 (第{idx + 1}题)，可能是页面结构变化')
                                     continue
@@ -212,7 +214,8 @@ def main():
                         answer_idx = 1 if answers[0] == 'true' else 2
                         try:
                             xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/div[2]/label[{answer_idx}]/span[1]/input'
-                            ac.click(xpath)
+                            element = dp.ele(xpath)
+                            dp.run_js('arguments[0].click()', element)
                         except ElementNotFoundError:
                             print(f'未找到判断题元素 (第{idx + 1}题)，可能是页面结构变化')
                             continue
@@ -221,8 +224,9 @@ def main():
                     elif len(answers) == 1:
                         try:
                             xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/div[2]/div[1]/div[1]/textarea'
-                            ac.click(xpath)
-                            ac.type(answers[0])
+                            element = dp.ele(xpath)
+                            ac.click(element)
+                            ac.key_down('CTRL').key_down('a').key_up('CTRL').type(answers[0])
                         except ElementNotFoundError:
                             print(f'未找到填空题元素 (第{idx + 1}题)，可能是页面结构变化')
                             continue
