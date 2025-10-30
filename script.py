@@ -21,13 +21,13 @@ import sys
 import time
 
 import requests
-from DrissionPage import ChromiumPage, ChromiumOptions
+from DrissionPage import Chromium, ChromiumPage, ChromiumOptions
 from DrissionPage.common import Actions
 from DrissionPage.errors import ElementNotFoundError
 
 _author = '墨青BlackCyan'
 _name = 'Ulearning自动答题脚本'
-_version = '1.3.1'
+_version = '1.3.2'
 menu = [
     '1.自动答题',
     '2.反馈',
@@ -101,8 +101,7 @@ def set_browser(browser_path):
 
 def main():
     # 初始化浏览器实例
-    dp = ChromiumPage(9333)
-    ac = Actions(dp)
+    browser = Chromium(9333)
 
     while True:
         os.system('cls')
@@ -117,6 +116,13 @@ def main():
                 break
             elif input_menu == 49:
                 os.system('cls')
+                try:
+                    dp = browser.get_tab(title='测验')
+                except RuntimeError:
+                    print('没有找到测验标签页。是否没有打开测验标签页？\n按任意键继续...')
+                    msvcrt.getch()
+                    continue
+                ac = Actions(dp)
                 print('请确保浏览器打开的标签页为做题页面，然后按下 Enter 继续...')
                 while True:
                     key = ord(msvcrt.getch())
@@ -221,12 +227,15 @@ def main():
                             continue
 
                     # 处理填空题
-                    elif len(answers) == 1:
+                    else:
                         try:
                             xpath = f'xpath://*[@id="app"]/div/div[1]/div[2]/div/div[1]/div/div/ul/li[{idx + 1}]/div[2]/div[2]/div[1]/div[1]/textarea'
                             element = dp.ele(xpath)
                             ac.click(element)
-                            ac.key_down('CTRL').key_down('a').key_up('CTRL').type(answers[0])
+                            answer = ''
+                            for i, a in enumerate(answers):
+                                answer += a + ('\n' if i != len(answers) - 1 else '')
+                            ac.key_down('CTRL').key_down('a').key_up('CTRL').type(answer).type('\n')
                         except ElementNotFoundError:
                             print(f'未找到填空题元素 (第{idx + 1}题)，可能是页面结构变化')
                             continue
@@ -237,7 +246,7 @@ def main():
 
             elif input_menu == 50:
                 # 打开反馈页面
-                dp.new_tab('https://github.com/Black-Cyan/Ulearning/issues')
+                browser.new_tab('https://github.com/Black-Cyan/Ulearning/issues')
                 continue
 
             else:
